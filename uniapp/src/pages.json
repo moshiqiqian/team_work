@@ -1,24 +1,28 @@
-
-
 {
-    "pages": [
-        {
-            "path": "pages/index/index",
-            "style": {
-                "navigationBarTitleText": "🎬 戏剧搜索与推荐"
-            }
-        },
-        {
-            "path": "pages/management/management",
-            "style": {
-                "navigationBarTitleText": "⚙️ 戏剧内容管理"
-            }
-        }
-    ],
-    "globalStyle": {
-        "navigationBarTextStyle": "black",
-        "navigationBarTitleText": "戏剧管理系统",
-        "navigationBarBackgroundColor": "#f8f8f8",
-        "backgroundColor": "#ffffff"
-    }
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "🎬 戏剧搜索与推荐"
+			}
+		},
+		{
+			"path": "pages/management/management",
+			"style": {
+				"navigationBarTitleText": "⚙️ 戏剧内容管理"
+			}
+		},
+		{
+			"path": "pages/detail/detail",
+			"style": {
+				"navigationBarTitleText": "📖 戏剧详情"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "戏剧管理系统",
+		"navigationBarBackgroundColor": "#f8f8f8",
+		"backgroundColor": "#ffffff"
+	}
 }

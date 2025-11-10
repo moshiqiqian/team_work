@@ -1,6 +1,5 @@
 <template>
   <view class="container">
-    <!-- 头部导航和搜索框 -->
     <view class="header">
       <uni-search-bar
         @confirm="handleSearch"
@@ -14,7 +13,6 @@
       </button>
     </view>
 
-    <!-- AI 联想推荐 -->
     <view v-if="store.suggestedDramas.length > 0 && searchQuery" class="ai-suggestion-card">
       <text class="ai-title">🧠 AI 推荐联想：</text>
       <view class="tag-list">
@@ -28,7 +26,6 @@
       </view>
     </view>
 
-    <!-- 戏剧列表 -->
     <view v-if="store.loading" class="loading-box">
       <text>加载中...</text>
     </view>
@@ -119,11 +116,11 @@ const handleSearch = (e: { value: string }) => {
 };
 
 /**
- * 跳转到详情/编辑页 (这里简化为跳转到管理页面，并传递参数进行编辑)
+ * 跳转到详情页 (已修正为跳转到 detail.vue)
  */
 const viewDetail = (drama: Drama) => {
   uni.navigateTo({
-    url: `/pages/management/management?id=${drama.id}`,
+    url: `/pages/detail/detail?id=${drama.id}`, // <-- 关键修正
   });
 };
 

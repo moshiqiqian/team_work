@@ -55,6 +55,17 @@ export async function fetchDramas(query?: string): Promise<Drama[]> {
     return request<Drama[]>(url);
 }
 
+/**
+ * 【新增】根据ID获取单个戏剧的详情
+ * 对应后端 GET /api/dramas/:id 接口
+ * @param id 戏剧的唯一标识符 UUID
+ * @returns Promise<Drama>
+ */
+export async function fetchDramaById(id: string): Promise<Drama> {
+    // 调用 request 工具，直接访问 /dramas/ID 接口
+    return request<Drama>(`/dramas/${id}`); 
+}
+
 export async function createDrama(drama: Omit<Drama, 'id' | 'tags'> & { tags: string[] }): Promise<Drama> {
     return request<Drama>('/dramas', { method: 'POST', data: drama });
 }
