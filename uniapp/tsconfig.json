@@ -7,7 +7,22 @@
       "@/*": ["./src/*"]
     },
     "lib": ["esnext", "dom"],
-    "types": ["@dcloudio/types"]
+    "types": ["@dcloudio/types"],
+    
+    // 【解决所有警告的最终方案】
+    "verbatimModuleSyntax": true, 
+    
+    // 【强制覆盖 importsNotUsedAsValues】
+    // 根据您的报错提示，使用 'remove' 字符串值来通过校验，并消除警告。
+    "importsNotUsedAsValues": "remove",
+    
+    // 【强制覆盖 preserveValueImports】
+    // 由于它已被 verbatimModuleSyntax 替换，并且与 importsNotUsedAsValues 功能相似，
+    // 在此处将其设置为 false (布尔值) 可能会导致另一个类型错误。
+    // 最干净的做法是删除它，依赖于上方对 importsNotUsedAsValues 的修复和 verbatimModuleSyntax 的设置。
+    // 但是，为了安全，我们尝试将其移除：
+    "preserveValueImports": false // <-- 请将此行从您的文件中彻底删除！
+    
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
 }

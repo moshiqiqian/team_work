@@ -8,14 +8,11 @@
       active-color="#409eff"
     ></uni-segmented-control>
     
-    <!-- 1. 新增/编辑戏剧区域 -->
     <view v-show="currentTab === 0" class="drama-form-area">
       <uni-card :title="isEditMode ? '编辑戏剧内容' : '新增戏剧内容'" margin="10px 0">
         
-        <!-- 表单 -->
         <uni-forms ref="dramaFormRef" :modelValue="dramaForm" :rules="dramaRules">
           
-          <!-- 封面 URL -->
           <uni-forms-item label="封面 URL" name="coverUrl">
             <uni-easyinput 
               v-model="dramaForm.coverUrl" 
@@ -24,22 +21,18 @@
             />
           </uni-forms-item>
           
-          <!-- 戏剧名称 -->
           <uni-forms-item label="戏剧名称" name="name">
             <uni-easyinput v-model="dramaForm.name" placeholder="请输入戏剧名称" />
           </uni-forms-item>
 
-          <!-- 戏剧流派 -->
           <uni-forms-item label="流派" name="genre">
             <uni-easyinput v-model="dramaForm.genre" placeholder="例如：喜剧、悲剧、音乐剧" />
           </uni-forms-item>
 
-          <!-- 简介 -->
           <uni-forms-item label="内容简介" name="synopsis">
             <uni-easyinput type="textarea" v-model="dramaForm.synopsis" placeholder="请输入戏剧的详细简介" />
           </uni-forms-item>
 
-          <!-- AI 标签生成 -->
           <uni-forms-item label="AI 智能标签" name="aiTags">
             <view class="ai-tag-section">
               <button 
@@ -54,11 +47,10 @@
             </view>
           </uni-forms-item>
 
-          <!-- 标签选择 (多选) -->
           <uni-forms-item label="选择标签" name="tags">
             <view class="tag-selection">
               <view 
-                v-for="(tag) in store.tags" 
+                v-for="(tag) in tags" 
                 :key="tag.id" 
                 class="tag-item"
                 :class="{ 'tag-selected': dramaForm.tags.includes(tag.name) }"
@@ -73,25 +65,34 @@
           </uni-forms-item>
           
           <view class="button-group">
-            <button 
-              type="primary" 
-              class="submit-btn" 
-              @click="submitForm"
-              :disabled="isSubmitting"
-              :loading="isSubmitting"
-            >
-              {{ isEditMode ? '保存修改' : '新增戏剧' }}
-            </button>
-            <button v-if="isEditMode" type="default" @click="resetForm">取消编辑</button>
+              
+              <uni-button 
+                type="primary" 
+                class="submit-btn" 
+                @click="submitForm"
+                :disabled="isSubmitting"
+                :loading="isSubmitting"
+                :style="{ width: isEditMode ? '50%' : '100%' }" >
+                {{ isEditMode ? '保存修改' : '新增戏剧' }}
+              </uni-button>
+              
+              <uni-button 
+                v-if="isEditMode" 
+                type="default" 
+                @click="resetForm"
+                :style="{ width: '50%', marginLeft: '10px' }"
+              >
+                取消编辑
+              </uni-button>
+
           </view>
         </uni-forms>
       </uni-card>
 
-      <!-- 戏剧列表 (下半部分) -->
-      <uni-card title="全部戏剧列表" margin="10px 0" :extra="'共 ' + store.dramas.length + ' 条'">
-        <uni-list v-if="store.dramas.length > 0">
+      <uni-card title="全部戏剧列表" margin="10px 0" :extra="'共 ' + dramas.length + ' 条'">
+        <uni-list v-if="dramas.length > 0">
           <uni-list-item 
-            v-for="drama in store.dramas" 
+            v-for="drama in dramas" 
             :key="drama.id"
             :title="drama.name" 
             :note="drama.genre + ' | ' + drama.tags.join(', ')"
@@ -114,12 +115,11 @@
       </uni-card>
     </view>
     
-    <!-- 2. 标签管理区域 -->
     <view v-show="currentTab === 1" class="tag-management-area">
       <uni-card title="标签管理 (增/删)" margin="10px 0">
         <view class="add-tag-form">
           <uni-easyinput v-model="newTagName" placeholder="输入新的标签名称" />
-          <button 
+          <uni-button 
             type="primary" 
             size="mini" 
             @click="handleAddTag"
@@ -127,14 +127,14 @@
             :loading="isAddingTag"
           >
             新增标签
-          </button>
+          </uni-button>
         </view>
         
         <view class="tag-list-display">
-          <text class="tag-count-title">现有标签 ({{ store.tags.length }})：</text>
+          <text class="tag-count-title">现有标签 ({{ tags.length }})：</text>
           <view class="tag-list-box">
             <view 
-              v-for="tag in store.tags" 
+              v-for="tag in tags" 
               :key="tag.id" 
               class="tag-pill"
             >
@@ -158,27 +158,31 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive, getCurrentInstance } from 'vue';
 import { useDramaStore } from '../../store/drama';
+import { storeToRefs } from 'pinia'; 
 import * as api from '../../api/drama';
 import type { Drama, Tag } from '../../api/drama';
 
-// 导入 uni-ui 组件
-import uniSearchBar from '@dcloudio/uni-ui/lib/uni-search-bar/uni-search-bar.vue';
-import uniCard from '@dcloudio/uni-ui/lib/uni-card/uni-card.vue';
-import uniTag from '@dcloudio/uni-ui/lib/uni-tag/uni-tag.vue';
-import uniEasyinput from '@dcloudio/uni-ui/lib/uni-easyinput/uni-easyinput.vue';
-import uniForms from '@dcloudio/uni-ui/lib/uni-forms/uni-forms.vue';
-import uniFormsItem from '@dcloudio/uni-ui/lib/uni-forms-item/uni-forms-item.vue';
-import uniList from '@dcloudio/uni-ui/lib/uni-list/uni-list.vue';
-import uniListItem from '@dcloudio/uni-ui/lib/uni-list-item/uni-list-item.vue';
-import uniSegmentedControl from '@dcloudio/uni-ui/lib/uni-segmented-control/uni-segmented-control.vue';
-import uniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue';
+// 【Easycom 修复】：删除了所有 uni-ui 组件的 import，依赖 pages.json 的配置
+
+
+// 确保 uni 对象被识别
+declare const uni: any; 
 
 // 获取全局属性
 const { proxy } = getCurrentInstance()!;
-const $showMsg = proxy!.$showMsg as (title: string, icon?: 'success' | 'loading' | 'none') => void;
+// 修正 $showMsg 的类型报错 (使用 as any)
+const $showMsg = (proxy as any).$showMsg as (title: string, icon?: 'success' | 'loading' | 'none') => void;
 
 const store = useDramaStore();
-const dramaFormRef = ref<InstanceType<typeof uniForms> | null>(null);
+// 使用 storeToRefs 修复 Pinia 响应式问题
+const { dramas, tags } = storeToRefs(store); 
+
+// 为 uni-forms 引用添加类型，虽然组件没有导入，但类型定义仍在
+type UniFormsInstance = {
+  validate: () => Promise<void>;
+  clearValidate: () => void;
+};
+const dramaFormRef = ref<UniFormsInstance | null>(null);
 
 // 表单状态
 const initialForm: Omit<Drama, 'id'> & { id: string | null } = {
@@ -218,7 +222,8 @@ onMounted(() => {
   
   // 检查是否从首页跳转过来进行编辑
   const pages = getCurrentPages();
-  const currentPage = pages[pages.length - 1];
+  // 修正 options 属性的类型报错 (使用 as any)
+  const currentPage = pages[pages.length - 1] as any; 
   const options = currentPage.options;
   if (options && options.id) {
       editDramaById(options.id);
@@ -243,9 +248,9 @@ const editDrama = (drama: Drama) => {
  */
 const editDramaById = async (id: string) => {
   try {
-    const drama = await api.fetchDramas(id); // 简单起见，利用查询接口
-    if (drama && drama.length > 0) {
-      editDrama(drama[0]);
+    const drama = await api.fetchDramaById(id); 
+    if (drama) {
+      editDrama(drama);
     } else {
         $showMsg('未找到该戏剧', 'none');
     }
@@ -306,7 +311,8 @@ const handleGenerateTags = async () => {
  */
 const submitForm = async () => {
   try {
-    await dramaFormRef.value?.validate();
+    // 强制断言，因为我们没有导入 uniForms 的类型
+    await (dramaFormRef.value as UniFormsInstance)?.validate(); 
     isSubmitting.value = true;
 
     const dramaData: Partial<Drama> = {
@@ -321,12 +327,7 @@ const submitForm = async () => {
       await api.updateDrama(dramaForm.id, dramaData);
       $showMsg('修改成功', 'success');
     } else {
-      // 检查必填项
-      if (!dramaData.name || !dramaData.synopsis) {
-          $showMsg('请填写必填项', 'none');
-          return;
-      }
-      await api.createDrama(dramaData as any); // 类型断言，确保符合 Omit 后的结构
+      await api.createDrama(dramaData as any); 
       $showMsg('新增成功', 'success');
     }
 
@@ -337,9 +338,9 @@ const submitForm = async () => {
   } catch (error: any) {
     console.error('表单提交失败:', error);
     if (error.errMsg) {
-      $showMsg(`提交失败: ${error.errMsg}`, 'none'); // uni-forms 验证失败
+      $showMsg(`验证失败，请检查必填项`, 'none'); 
     } else if (error.message) {
-      $showMsg(`提交失败: ${error.message}`, 'none'); // API 错误
+      $showMsg(`提交失败: ${error.message}`, 'none'); 
     } else {
       $showMsg('提交失败，请检查输入', 'none');
     }
@@ -351,18 +352,18 @@ const submitForm = async () => {
 /**
  * 删除戏剧
  */
+// 【TypeScript 修复】: 明确指定 res 的类型
 const deleteDrama = (drama: Drama) => {
   uni.showModal({
     title: '确认删除',
     content: `确定要删除戏剧《${drama.name}》吗？`,
-    success: async (res) => {
+    success: async (res: { confirm: boolean; cancel: boolean }) => { 
       if (res.confirm) {
         try {
           await api.deleteDrama(drama.id);
           await store.loadDramas();
           $showMsg('删除成功', 'success');
           
-          // 如果删除的是当前正在编辑的项，则重置表单
           if (dramaForm.id === drama.id) {
               resetForm();
           }
@@ -403,11 +404,12 @@ const handleAddTag = async () => {
 /**
  * 删除标签
  */
+// 【TypeScript 修复】: 明确指定 res 的类型
 const handleDeleteTag = (tag: Tag) => {
   uni.showModal({
     title: '确认删除标签',
     content: `确定要删除标签 "${tag.name}" 吗？删除后，关联的戏剧将失去该标签！`,
-    success: async (res) => {
+    success: async (res: { confirm: boolean; cancel: boolean }) => {
       if (res.confirm) {
         try {
           await api.deleteTag(tag.id);
@@ -423,7 +425,8 @@ const handleDeleteTag = (tag: Tag) => {
 };
 </script>
 
-<style>
+<style lang="scss">
+/* 您的 SCSS 样式 */
 .container {
   padding: 10px;
   min-height: 100vh;
@@ -453,7 +456,7 @@ const handleDeleteTag = (tag: Tag) => {
     font-size: 14px;
     padding: 0 10px;
     white-space: nowrap;
-    background-color: #e6a23c; /* 警告色用于AI */
+    background-color: #e6a23c; 
     color: white;
 }
 .ai-tag-tip {
